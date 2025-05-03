@@ -23,11 +23,13 @@ def generate_random_flow_problem(n, with_cost=False):
 
     return (C, D) if with_cost else (C, None)
 
-def measure_algorithm_time(algorithm, graph, *args, **kwargs):
+def measure_algorithm_time(algorithm, *args, **kwargs):
+    import time
     start = time.perf_counter()
-    result = algorithm(graph, *args, **kwargs, verbose=False)
+    result = algorithm(*args, **kwargs)
     end = time.perf_counter()
     return end - start, result
+
 
 
 def run_complexity_tests():
@@ -54,7 +56,6 @@ def run_complexity_tests():
 
 def plot_results(results):
     plt.figure(figsize=(10, 6))
-    
     for algo in ["Ford-Fulkerson"]:
         for n, times in results.items():
             x_jitter = np.random.normal(loc=n, scale=0.2, size=len(times[algo]))
@@ -67,6 +68,18 @@ def plot_results(results):
     plt.grid(True)
     plt.tight_layout()
     plt.show()
+
+def plot_iterations_vs_time(times, n):
+    plt.figure(figsize=(10, 5))
+    x_vals = list(range(1, len(times) + 1))  # 1 à k
+    plt.plot(x_vals, times, marker='o', linestyle='-')
+    plt.xlabel("Numéro de l’itération")
+    plt.ylabel("Temps d’exécution (s)")
+    plt.title(f"Temps d'exécution par itération – Ford-Fulkerson (n = {n})")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
 
 if __name__ == "__main__":
     results = run_complexity_tests()
