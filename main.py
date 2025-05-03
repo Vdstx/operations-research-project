@@ -8,6 +8,7 @@ from functions import (
     compute_flow_matrix
 )
 from complexity import measure_algorithm_time
+from tqdm import trange
 import json
 import time
 import matplotlib.pyplot as plt
@@ -30,9 +31,7 @@ def plot_all_algorithms(times_dict, n):
     plt.show()
 
 def run_single_full_test(n):
-    # Utilise la version de generate_random_flow_problem de functions.py
     C, D = generate_random_flow_problem(n)
-
     durations = {}
 
     C1 = [row[:] for row in C]
@@ -54,19 +53,28 @@ def run_single_full_test(n):
     return durations
 
 def custom_test(n, k):
-    print(f"\n⏳ Lancement de {k} itérations pour un graphe de taille {n}...")
+    print(f"\n🔬 Étude de complexité sur {k} itérations pour un graphe de taille {n}...")
     start_time = time.perf_counter()
+
     algo_times = {
         "Ford-Fulkerson": [],
         "Push-Relabel": [],
         "Flot à coût min": []
     }
-    for i in range(k):
+
+    for _ in trange(k, desc=f"⏳ Lancement des {k} itérations"):
         result = run_single_full_test(n)
         for algo in algo_times:
             algo_times[algo].append(result[algo])
+
     total_time = time.perf_counter() - start_time
-    print(f"\n🕒 Temps total pour {k} itérations : {total_time:.4f} s")
+    print(f"\n🕒 Temps total pour {k} itérations : {total_time:.4f} s\n")
+
+    for algo in algo_times:
+        max_time = max(algo_times[algo])
+        avg_time = sum(algo_times[algo]) / len(algo_times[algo])
+        print(f"⏱️ {algo:<20} | Max : {max_time:.4f} s | Moyenne : {avg_time:.4f} s")
+
     return {n: algo_times}
 
 if __name__ == "__main__":
@@ -86,7 +94,6 @@ if __name__ == "__main__":
             compute_flow_matrix(graph, ff_mat)
 
     elif choix == "2":
-        print("\n🔬 Étude de complexité - 3 algorithmes")
         try:
             taille = int(input("👉 Entrez la taille n du graphe (ex : 10, 100, 1000) : "))
             repetitions = int(input("👉 Entrez le nombre d’itérations (ex : 10, 50, 100) : "))
