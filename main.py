@@ -63,7 +63,7 @@ def print_max_per_algorithm(times):
         print(f" - {algo} : {max(tlist):.4f} s")
 
 if __name__ == "__main__":
-    print("Tapez 'test' pour tester un graphe aléatoire ou 'complexité' pour lancer une étude de complexité :")
+    print("Tapez 'graphe' pour tester un graphe aléatoire ou 'complexité' pour lancer une étude de complexité :")
     mode = input().strip().lower()
 
     if mode == "complexité":
