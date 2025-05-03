@@ -1,5 +1,6 @@
 import random
 from collections import deque
+import collections
 
 def generate_random_flow_problem(n, max_capacity=20, max_cost=10):
     C = [[0]*n for _ in range(n)]
@@ -52,23 +53,31 @@ def ford_fulkerson(graph, s, t, verbose=False):
 
     return max_flow, flow_matrix
 
-def push_relabel(capacity, source, sink):
-    n = len(capacity)
+import collections
+
+from collections import deque
+
+from collections import deque
+
+def push_relabel(graph, source, sink):
+    n = len(graph)
     height = [0] * n
     excess = [0] * n
     flow = [[0] * n for _ in range(n)]
 
     def push(u, v):
-        send = min(excess[u], capacity[u][v] - flow[u][v])
+        send = min(excess[u], graph[u][v] - flow[u][v])
         flow[u][v] += send
         flow[v][u] -= send
         excess[u] -= send
         excess[v] += send
+        if excess[v] > 0 and v != source and v != sink and v not in active:
+            active.append(v)
 
     def relabel(u):
         min_height = float('inf')
         for v in range(n):
-            if capacity[u][v] - flow[u][v] > 0:
+            if graph[u][v] - flow[u][v] > 0:
                 min_height = min(min_height, height[v])
         if min_height < float('inf'):
             height[u] = min_height + 1
@@ -76,7 +85,7 @@ def push_relabel(capacity, source, sink):
     def discharge(u):
         while excess[u] > 0:
             for v in range(n):
-                if capacity[u][v] - flow[u][v] > 0 and height[u] == height[v] + 1:
+                if graph[u][v] - flow[u][v] > 0 and height[u] == height[v] + 1:
                     push(u, v)
                     if excess[u] == 0:
                         break
@@ -85,22 +94,25 @@ def push_relabel(capacity, source, sink):
 
     height[source] = n
     for v in range(n):
-        if capacity[source][v] > 0:
-            flow[source][v] = capacity[source][v]
-            flow[v][source] = -flow[source][v]
-            excess[v] = flow[source][v]
-            excess[source] -= flow[source][v]
+        if graph[source][v] > 0:
+            flow[source][v] = graph[source][v]
+            flow[v][source] = -graph[source][v]
+            excess[v] = graph[source][v]
+            excess[source] -= graph[source][v]
 
-    active = [i for i in range(n) if i != source and i != sink and excess[i] > 0]
+    active = deque([i for i in range(n) if i != source and i != sink and excess[i] > 0])
 
     while active:
-        u = active.pop(0)
+        u = active.popleft()
         old_height = height[u]
         discharge(u)
-        if height[u] > old_height:
-            active.insert(0, u)
+        if excess[u] > 0 and height[u] > old_height:
+            active.append(u)
 
     return sum(flow[source][v] for v in range(n))
+
+
+
 
 def min_cost_max_flow(cap, cost, source, sink, target_flow):
     n = len(cap)
