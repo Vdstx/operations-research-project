@@ -1,18 +1,5 @@
-from collections import deque
-import copy
-import math
-import collections
 import random
-
-def graph_import(link):
-    with open(link, 'r') as f:
-        lines = f.readlines()
-    graph = []
-    type_of_problem = 1 if len(lines) > int(lines[0]) + 1 else 2
-    for line in lines[1:]:
-        values = list(map(int, line.split()))
-        graph.append(values)
-    return (graph, type_of_problem)
+from collections import deque
 
 def generate_random_flow_problem(n, max_capacity=20, max_cost=10):
     C = [[0]*n for _ in range(n)]
@@ -24,83 +11,55 @@ def generate_random_flow_problem(n, max_capacity=20, max_cost=10):
                 D[i][j] = random.randint(1, max_cost)
     return C, D
 
-def ford_fulkerson(graph, s=0, t=None, verbose=True):
+def ford_fulkerson(graph, s, t, verbose=False):
     n = len(graph)
-    if t is None:
-        t = n - 1
-
+    residual = [row[:] for row in graph]
+    parent = [-1] * n
     max_flow = 0
-    residual = copy.deepcopy(graph)
-    iteration = 1
+    flow_matrix = [[0]*n for _ in range(n)]
 
-    while True:
-        if verbose:
-            print(f"\\n🌀 Itération {iteration} :")
-        parent = [-1] * n
-        flow, path = bfs(residual, s, t, parent)
+    def bfs():
+        nonlocal parent
+        visited = [False] * n
+        queue = deque([s])
+        visited[s] = True
+        while queue:
+            u = queue.popleft()
+            for v in range(n):
+                if not visited[v] and residual[u][v] > 0:
+                    queue.append(v)
+                    visited[v] = True
+                    parent[v] = u
+        return visited[t]
 
-        if flow == 0:
-            if verbose:
-                print("❌ Aucun chemin améliorant trouvé. L'algorithme s'arrête.")
-            break
+    while bfs():
+        path_flow = float('inf')
+        v = t
+        while v != s:
+            u = parent[v]
+            path_flow = min(path_flow, residual[u][v])
+            v = parent[v]
 
-        if verbose:
-            print(f"✔️ Chaîne améliorante trouvée : {' → '.join(map(str, path))}")
-            print(f"🔁 Valeur de flot pour cette chaîne : {flow}")
+        v = t
+        while v != s:
+            u = parent[v]
+            residual[u][v] -= path_flow
+            residual[v][u] += path_flow
+            flow_matrix[u][v] += path_flow
+            v = parent[v]
 
-        u = t
-        while u != s:
-            v = parent[u]
-            residual[v][u] -= flow
-            residual[u][v] += flow
-            u = v
+        max_flow += path_flow
 
-        max_flow += flow
+    return max_flow, flow_matrix
 
-        if verbose:
-            print("📊 Graphe résiduel mis à jour :")
-            print_graph_to_matrix_of_values(residual)
-
-        iteration += 1
-
-    if verbose:
-        print(f"\\n🌊 Flot maximal trouvé : {max_flow}")
-    return max_flow, residual
-
-def bfs(residual, s, t, parent):
-    n = len(residual)
-    visited = [False] * n
-    queue = deque([s])
-    visited[s] = True
-
-    while queue:
-        u = queue.popleft()
-        for v in range(n):
-            if not visited[v] and residual[u][v] > 0:
-                parent[v] = u
-                visited[v] = True
-                queue.append(v)
-                if v == t:
-                    path = []
-                    curr = t
-                    while curr != -1:
-                        path.append(curr)
-                        curr = parent[curr]
-                    path.reverse()
-                    min_capacity = min(residual[parent[v]][v] for v in path[1:])
-                    return min_capacity, path
-    return 0, []
-
-def push_relabel(graph, source=0, sink=None):
-    n = len(graph)
-    if sink is None:
-        sink = n - 1
+def push_relabel(capacity, source, sink):
+    n = len(capacity)
     height = [0] * n
     excess = [0] * n
     flow = [[0] * n for _ in range(n)]
 
     def push(u, v):
-        send = min(excess[u], graph[u][v] - flow[u][v])
+        send = min(excess[u], capacity[u][v] - flow[u][v])
         flow[u][v] += send
         flow[v][u] -= send
         excess[u] -= send
@@ -109,7 +68,7 @@ def push_relabel(graph, source=0, sink=None):
     def relabel(u):
         min_height = float('inf')
         for v in range(n):
-            if graph[u][v] - flow[u][v] > 0:
+            if capacity[u][v] - flow[u][v] > 0:
                 min_height = min(min_height, height[v])
         if min_height < float('inf'):
             height[u] = min_height + 1
@@ -117,7 +76,7 @@ def push_relabel(graph, source=0, sink=None):
     def discharge(u):
         while excess[u] > 0:
             for v in range(n):
-                if graph[u][v] - flow[u][v] > 0 and height[u] == height[v] + 1:
+                if capacity[u][v] - flow[u][v] > 0 and height[u] == height[v] + 1:
                     push(u, v)
                     if excess[u] == 0:
                         break
@@ -126,90 +85,68 @@ def push_relabel(graph, source=0, sink=None):
 
     height[source] = n
     for v in range(n):
-        if graph[source][v] > 0:
-            flow[source][v] = graph[source][v]
-            flow[v][source] = -graph[source][v]
-            excess[v] = graph[source][v]
-            excess[source] -= graph[source][v]
+        if capacity[source][v] > 0:
+            flow[source][v] = capacity[source][v]
+            flow[v][source] = -flow[source][v]
+            excess[v] = flow[source][v]
+            excess[source] -= flow[source][v]
 
-    active = collections.deque([i for i in range(n) if i != source and i != sink and excess[i] > 0])
+    active = [i for i in range(n) if i != source and i != sink and excess[i] > 0]
+
     while active:
-        u = active.popleft()
+        u = active.pop(0)
         old_height = height[u]
         discharge(u)
-        if excess[u] > 0 and height[u] > old_height:
-            active.append(u)
+        if height[u] > old_height:
+            active.insert(0, u)
 
     return sum(flow[source][v] for v in range(n))
 
-def bellman_ford(graph, cost, source, sink):
-    n = len(graph)
-    distance = [math.inf] * n
-    parent = [-1] * n
-    distance[source] = 0
+def min_cost_max_flow(cap, cost, source, sink, target_flow):
+    n = len(cap)
+    flow = [[0]*n for _ in range(n)]
+    total_flow = 0
+    total_cost = 0
 
-    for _ in range(n - 1):
-        for u in range(n):
+    def bellman_ford():
+        dist = [float('inf')] * n
+        in_queue = [False] * n
+        parent = [-1] * n
+        dist[source] = 0
+        queue = deque([source])
+        in_queue[source] = True
+        while queue:
+            u = queue.popleft()
+            in_queue[u] = False
             for v in range(n):
-                if graph[u][v] > 0 and distance[u] + cost[u][v] < distance[v]:
-                    distance[v] = distance[u] + cost[u][v]
+                if cap[u][v] - flow[u][v] > 0 and dist[v] > dist[u] + cost[u][v]:
+                    dist[v] = dist[u] + cost[u][v]
                     parent[v] = u
-    return distance, parent
+                    if not in_queue[v]:
+                        queue.append(v)
+                        in_queue[v] = True
+        return dist, parent
 
-def min_cost_max_flow(graph, cost, source=0, sink=None):
-    n = len(graph)
-    if sink is None:
-        sink = n - 1
-    flow = 0
-    min_cost = 0
-    residual = [row[:] for row in graph]
-
-    while True:
-        distance, parent = bellman_ford(residual, cost, source, sink)
-        if distance[sink] == math.inf:
+    while total_flow < target_flow:
+        dist, parent = bellman_ford()
+        if parent[sink] == -1:
             break
 
-        increment = math.inf
+        increment = target_flow - total_flow
         v = sink
         while v != source:
             u = parent[v]
-            increment = min(increment, residual[u][v])
+            increment = min(increment, cap[u][v] - flow[u][v])
             v = u
 
         v = sink
         while v != source:
             u = parent[v]
-            residual[u][v] -= increment
-            residual[v][u] += increment
-            min_cost += increment * cost[u][v]
+            flow[u][v] += increment
+            flow[v][u] -= increment
+            total_cost += increment * cost[u][v]
             v = u
 
-        flow += increment
+        total_flow += increment
 
-    return flow, min_cost
-
-def print_graph_to_matrix_of_values(liste_adjacence):
-    n = len(liste_adjacence)
-    print("La matrice de capacité")
-    header = "    " + "  ".join(str(i) if i > 0 and i < n-1 else "s" if i == 0 else "t" for i in range(n))
-    separator = "   " + "-" * (n * 3)
-    print(header)
-    print(separator)
-    for i in range(n):
-        row = f"{i if (i > 0 and i < n-1) else 's' if i == 0 else 't'} | " + "  ".join(
-            str(liste_adjacence[i][j]) if j < len(liste_adjacence[i]) else '*' for j in range(n))
-        print(row)
-
-def compute_flow_matrix(original_graph, residual_graph):
-    n = len(original_graph)
-    print("La matrice de flot")
-    header = "    " + "  ".join(str(i) if i > 0 and i < n - 1 else "s" if i == 0 else "t" for i in range(n))
-    separator = "   " + "-" * (n * 3)
-    print(header)
-    print(separator)
-    for i in range(n):
-        row = f"{i if (i > 0 and i < n - 1) else 's' if i == 0 else 't'} | " + "  ".join(
-            str(original_graph[i][j] - residual_graph[i][j]) + '/' + str(original_graph[i][j])
-            if original_graph[i][j] > 0 else '*'
-            for j in range(n))
-        print(row)
+    return total_flow, total_cost

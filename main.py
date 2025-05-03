@@ -2,104 +2,101 @@ from functions import (
     generate_random_flow_problem,
     ford_fulkerson,
     push_relabel,
-    min_cost_max_flow,
-    graph_import,
-    print_graph_to_matrix_of_values,
-    compute_flow_matrix
+    min_cost_max_flow
 )
 from complexity import measure_algorithm_time
-from tqdm import trange
-import json
-import time
 import matplotlib.pyplot as plt
+import time
 
-def save_results_json(results, filename="results.json"):
-    with open(filename, "w") as f:
-        json.dump(results, f, indent=4)
-    print(f"\n📁 Résultats sauvegardés dans {filename}")
-
-def plot_all_algorithms(times_dict, n):
-    plt.figure(figsize=(10, 5))
-    for algo, times in times_dict.items():
-        plt.plot(range(1, len(times) + 1), times, marker='o', linestyle='-', label=algo)
-    plt.xlabel("Itération")
+def plot_all_algorithms(results, n, k):
+    plt.figure(figsize=(10, 6))
+    for algo, times in results.items():
+        plt.plot(range(1, k+1), times, label=algo)
+    plt.xlabel("Numéro d'itération")
     plt.ylabel("Temps d'exécution (s)")
-    plt.title(f"Comparaison des temps d'exécution – n = {n}")
+    plt.title(f"Comparaison des temps d'exécution pour n={n}, k={k}")
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
     plt.show()
 
-def run_single_full_test(n):
-    C, D = generate_random_flow_problem(n)
-    durations = {}
-
-    C1 = [row[:] for row in C]
-    durations["Ford-Fulkerson"], _ = measure_algorithm_time(
-        ford_fulkerson, graph=C1, s=0, t=len(C1)-1, verbose=False
-    )
-
-    C2 = [row[:] for row in C]
-    durations["Push-Relabel"], _ = measure_algorithm_time(
-        push_relabel, graph=C2, source=0, sink=len(C2)-1
-    )
-
-    C3 = [row[:] for row in C]
-    D3 = [row[:] for row in D]
-    durations["Flot à coût min"], _ = measure_algorithm_time(
-        min_cost_max_flow, graph=C3, cost=D3, source=0, sink=len(C3)-1
-    )
-
-    return durations
-
-def custom_test(n, k):
-    print(f"\n🔬 Étude de complexité sur {k} itérations pour un graphe de taille {n}...")
-    start_time = time.perf_counter()
-
-    algo_times = {
+def run_tests(n, k):
+    times = {
         "Ford-Fulkerson": [],
         "Push-Relabel": [],
-        "Flot à coût min": []
+        "Min-Cost Max-Flow": []
     }
 
-    for _ in trange(k, desc=f"⏳ Lancement des {k} itérations"):
-        result = run_single_full_test(n)
-        for algo in algo_times:
-            algo_times[algo].append(result[algo])
+    print(f"\n🔬 Étude de complexité sur {k} itérations pour un graphe de taille {n}...")
+    start_total = time.perf_counter()
+    for i in range(k):
+        print(f"\r⏳ Lancement des {k} itérations: {i+1}/{k}", end="")
 
-    total_time = time.perf_counter() - start_time
-    print(f"\n🕒 Temps total pour {k} itérations : {total_time:.4f} s\n")
+        cap, cost = generate_random_flow_problem(n)
 
-    for algo in algo_times:
-        max_time = max(algo_times[algo])
-        avg_time = sum(algo_times[algo]) / len(algo_times[algo])
-        print(f"⏱️ {algo:<20} | Max : {max_time:.4f} s | Moyenne : {avg_time:.4f} s")
+        # Ford-Fulkerson
+        cap_ff = [row[:] for row in cap]
+        t_ff, result_ff = measure_algorithm_time(ford_fulkerson, cap_ff, 0, n-1)
+        max_flow_ff = result_ff[0]
+        times["Ford-Fulkerson"].append(t_ff)
 
-    return {n: algo_times}
+        # Push-Relabel
+        cap_pr = [row[:] for row in cap]
+        t_pr, max_flow_pr = measure_algorithm_time(push_relabel, cap_pr, 0, n-1)
+        times["Push-Relabel"].append(t_pr)
+
+        # Min-Cost Max-Flow
+        cap_mc = [row[:] for row in cap]
+        cost_mc = [row[:] for row in cost]
+        target_flow = max_flow_ff // 2 if max_flow_ff > 0 else 1  # éviter division par 0
+        t_mc, _ = measure_algorithm_time(min_cost_max_flow, cap_mc, cost_mc, 0, n-1, target_flow)
+        times["Min-Cost Max-Flow"].append(t_mc)
+
+    end_total = time.perf_counter()
+    print(f"\n✅ Test terminé en {end_total - start_total:.2f} secondes.")
+    return times
+
+def print_max_per_algorithm(times):
+    print("\n📈 Temps maximal observé pour chaque algorithme :")
+    for algo, tlist in times.items():
+        print(f" - {algo} : {max(tlist):.4f} s")
 
 if __name__ == "__main__":
-    print("Souhaitez-vous tester un graphe (1) ou faire l’étude de complexité (2) ?")
-    choix = input("Entrez 1 ou 2 : ")
+    print("Tapez 'test' pour tester un graphe aléatoire ou 'complexité' pour lancer une étude de complexité :")
+    mode = input().strip().lower()
 
-    if choix == "1":
-        imported_data = graph_import("graphs/graph1.txt")
-        graph, flow_type = imported_data
-        if flow_type == 1:
-            print("problème de flot à coût minimal")
-        else:
-            print("problème de flot maximal")
-        print_graph_to_matrix_of_values(graph)
-        if flow_type == 2:
-            ff_mat = ford_fulkerson(graph)[1]
-            compute_flow_matrix(graph, ff_mat)
-
-    elif choix == "2":
+    if mode == "complexité":
         try:
-            taille = int(input("👉 Entrez la taille n du graphe (ex : 10, 100, 1000) : "))
-            repetitions = int(input("👉 Entrez le nombre d’itérations (ex : 10, 50, 100) : "))
+            n = int(input("👉 Entrez la taille n du graphe : "))
+            k = int(input("👉 Entrez le nombre d’itérations k : "))
         except ValueError:
-            print("❌ Entrée invalide. Veuillez entrer des entiers valides.")
+            print("❌ Veuillez entrer des entiers valides.")
         else:
-            results = custom_test(taille, repetitions)
-            plot_all_algorithms(results[taille], taille)
-            save_results_json(results)
+            results = run_tests(n, k)
+            print_max_per_algorithm(results)
+            plot_all_algorithms(results, n, k)
+
+    elif mode == "test":
+        n = 6
+        cap, cost = generate_random_flow_problem(n)
+        print("Capacité :")
+        for row in cap:
+            print(row)
+        print("\nCoût :")
+        for row in cost:
+            print(row)
+
+        print("\nFord-Fulkerson:")
+        flow, _ = ford_fulkerson([row[:] for row in cap], 0, n-1)
+        print("Max flow:", flow)
+
+        print("\nPush-Relabel:")
+        flow = push_relabel([row[:] for row in cap], 0, n-1)
+        print("Max flow:", flow)
+
+        print("\nMin-Cost Max-Flow:")
+        flow, cost = min_cost_max_flow([row[:] for row in cap], [row[:] for row in cost], 0, n-1, flow // 2)
+        print("Flow:", flow, "Cost:", cost)
+
+    else:
+        print("❌ Mode inconnu. Tapez 'test' ou 'complexité'.")
