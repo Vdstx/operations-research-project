@@ -10,7 +10,7 @@ from tqdm import trange
 def save_results_json(results, filename="results.json"):
     with open(filename, "w") as f:
         json.dump(results, f, indent=4)
-    print(f"\\n📁 Résultats sauvegardés dans {filename}")
+    print(f"\n📁 Résultats sauvegardés dans {filename}")
 
 def save_results_markdown(results, filename="results.md"):
     with open(filename, "w") as f:
@@ -25,7 +25,7 @@ def save_results_markdown(results, filename="results.md"):
     print(f"📄 Résultats sauvegardés dans {filename}")
 
 def custom_test(n, k):
-    print(f"\\n⏳ Lancement de {k} itérations pour un graphe de taille {n}...")
+    print(f"\n⏳ Lancement de {k} itérations pour un graphe de taille {n}...")
     times_ff = []
     for i in trange(k, desc="Progression"):
         C, _ = generate_random_flow_problem(n)
@@ -34,7 +34,7 @@ def custom_test(n, k):
         times_ff.append(duration)
 
     max_time = max(times_ff)
-    print(f"\\n📈 Temps max observé pour n = {n} : {max_time:.4f} s")
+    print(f"\n📈 Temps max observé pour n = {n} : {max_time:.4f} s")
     return {n: {"Ford-Fulkerson": times_ff}}
 
 if __name__ == "__main__":
@@ -59,7 +59,7 @@ if __name__ == "__main__":
             compute_flow_matrix(graph, ff_mat)
 
     elif choix == "2":
-        print("\\n🔬 Étude de complexité de Ford-Fulkerson")
+        print("\n🔬 Étude de complexité de Ford-Fulkerson")
         try:
             taille = int(input("👉 Entrez la taille n du graphe (ex : 10, 100, 1000) : "))
             repetitions = int(input("👉 Entrez le nombre d’itérations (ex : 10, 50, 100) : "))

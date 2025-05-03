@@ -2,6 +2,8 @@
 import random
 import time
 import matplotlib.pyplot as plt
+import numpy as np
+
 from functions import ford_fulkerson
 
 def generate_random_flow_problem(n, with_cost=False):
@@ -51,15 +53,19 @@ def run_complexity_tests():
     return results
 
 def plot_results(results):
+    plt.figure(figsize=(10, 6))
+    
     for algo in ["Ford-Fulkerson"]:
         for n, times in results.items():
-            plt.scatter([n]*len(times[algo]), times[algo], label=f"{algo}" if n == list(results.keys())[0] else "", alpha=0.3)
+            x_jitter = np.random.normal(loc=n, scale=0.2, size=len(times[algo]))
+            plt.scatter(x_jitter, times[algo], alpha=0.5, label=f"{algo} (n={n})")
 
-    plt.xlabel("Taille n du graphe")
-    plt.ylabel("Temps d'exécution (s)")
-    plt.title("Nuage de points - Complexité de Ford-Fulkerson")
+    plt.xlabel("Taille n du graphe", fontsize=12)
+    plt.ylabel("Temps d'exécution (s)", fontsize=12)
+    plt.title("⏱️ Complexité de l'algorithme Ford-Fulkerson", fontsize=14)
     plt.legend()
     plt.grid(True)
+    plt.tight_layout()
     plt.show()
 
 if __name__ == "__main__":
