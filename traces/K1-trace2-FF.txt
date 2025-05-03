@@ -1,0 +1,161 @@
+problème de flot maximal
+La matrice de capacité
+    s  1  2  3  4  5  6  7  8  t
+   ------------------------------
+s | 0  16  3  8  0  0  0  0  0  0
+1 | 0  0  0  0  3  2  3  0  0  0
+2 | 0  0  0  7  0  5  0  0  0  0
+3 | 0  0  0  0  0  0  0  0  7  0
+4 | 0  0  0  0  0  0  1  8  0  0
+5 | 0  0  0  0  8  0  0  0  0  0
+6 | 0  0  0  0  0  0  0  0  0  8
+7 | 0  0  0  0  0  0  3  0  4  6
+8 | 0  0  0  0  0  4  0  0  0  8
+t | 0  0  0  0  0  0  0  0  0  0
+
+ =========== ford fulkerson ===========
+
+
+🌀 Itération 1 :
+✔️ Chaîne améliorante trouvée : 0 → 1 → 6 → 9
+🔁 Valeur de flot pour cette chaîne : 3
+📊 Graphe résiduel mis à jour :
+La matrice de capacité
+    s  1  2  3  4  5  6  7  8  t
+   ------------------------------
+s | 0  13  3  8  0  0  0  0  0  0
+1 | 3  0  0  0  3  2  0  0  0  0
+2 | 0  0  0  7  0  5  0  0  0  0
+3 | 0  0  0  0  0  0  0  0  7  0
+4 | 0  0  0  0  0  0  1  8  0  0
+5 | 0  0  0  0  8  0  0  0  0  0
+6 | 0  3  0  0  0  0  0  0  0  5
+7 | 0  0  0  0  0  0  3  0  4  6
+8 | 0  0  0  0  0  4  0  0  0  8
+t | 0  0  0  0  0  0  3  0  0  0
+
+🌀 Itération 2 :
+✔️ Chaîne améliorante trouvée : 0 → 3 → 8 → 9
+🔁 Valeur de flot pour cette chaîne : 7
+📊 Graphe résiduel mis à jour :
+La matrice de capacité
+    s  1  2  3  4  5  6  7  8  t
+   ------------------------------
+s | 0  13  3  1  0  0  0  0  0  0
+1 | 3  0  0  0  3  2  0  0  0  0
+2 | 0  0  0  7  0  5  0  0  0  0
+3 | 7  0  0  0  0  0  0  0  0  0
+4 | 0  0  0  0  0  0  1  8  0  0
+5 | 0  0  0  0  8  0  0  0  0  0
+6 | 0  3  0  0  0  0  0  0  0  5
+7 | 0  0  0  0  0  0  3  0  4  6
+8 | 0  0  0  7  0  4  0  0  0  1
+t | 0  0  0  0  0  0  3  0  7  0
+
+🌀 Itération 3 :
+✔️ Chaîne améliorante trouvée : 0 → 1 → 4 → 6 → 9
+🔁 Valeur de flot pour cette chaîne : 1
+📊 Graphe résiduel mis à jour :
+La matrice de capacité
+    s  1  2  3  4  5  6  7  8  t
+   ------------------------------
+s | 0  12  3  1  0  0  0  0  0  0
+1 | 4  0  0  0  2  2  0  0  0  0
+2 | 0  0  0  7  0  5  0  0  0  0
+3 | 7  0  0  0  0  0  0  0  0  0
+4 | 0  1  0  0  0  0  0  8  0  0
+5 | 0  0  0  0  8  0  0  0  0  0
+6 | 0  3  0  0  1  0  0  0  0  4
+7 | 0  0  0  0  0  0  3  0  4  6
+8 | 0  0  0  7  0  4  0  0  0  1
+t | 0  0  0  0  0  0  4  0  7  0
+
+🌀 Itération 4 :
+✔️ Chaîne améliorante trouvée : 0 → 1 → 4 → 7 → 9
+🔁 Valeur de flot pour cette chaîne : 2
+📊 Graphe résiduel mis à jour :
+La matrice de capacité
+    s  1  2  3  4  5  6  7  8  t
+   ------------------------------
+s | 0  10  3  1  0  0  0  0  0  0
+1 | 6  0  0  0  0  2  0  0  0  0
+2 | 0  0  0  7  0  5  0  0  0  0
+3 | 7  0  0  0  0  0  0  0  0  0
+4 | 0  3  0  0  0  0  0  6  0  0
+5 | 0  0  0  0  8  0  0  0  0  0
+6 | 0  3  0  0  1  0  0  0  0  4
+7 | 0  0  0  0  2  0  3  0  4  4
+8 | 0  0  0  7  0  4  0  0  0  1
+t | 0  0  0  0  0  0  4  2  7  0
+
+🌀 Itération 5 :
+✔️ Chaîne améliorante trouvée : 0 → 1 → 5 → 4 → 7 → 9
+🔁 Valeur de flot pour cette chaîne : 2
+📊 Graphe résiduel mis à jour :
+La matrice de capacité
+    s  1  2  3  4  5  6  7  8  t
+   ------------------------------
+s | 0  8  3  1  0  0  0  0  0  0
+1 | 8  0  0  0  0  0  0  0  0  0
+2 | 0  0  0  7  0  5  0  0  0  0
+3 | 7  0  0  0  0  0  0  0  0  0
+4 | 0  3  0  0  0  2  0  4  0  0
+5 | 0  2  0  0  6  0  0  0  0  0
+6 | 0  3  0  0  1  0  0  0  0  4
+7 | 0  0  0  0  4  0  3  0  4  2
+8 | 0  0  0  7  0  4  0  0  0  1
+t | 0  0  0  0  0  0  4  4  7  0
+
+🌀 Itération 6 :
+✔️ Chaîne améliorante trouvée : 0 → 2 → 5 → 4 → 7 → 9
+🔁 Valeur de flot pour cette chaîne : 2
+📊 Graphe résiduel mis à jour :
+La matrice de capacité
+    s  1  2  3  4  5  6  7  8  t
+   ------------------------------
+s | 0  8  1  1  0  0  0  0  0  0
+1 | 8  0  0  0  0  0  0  0  0  0
+2 | 2  0  0  7  0  3  0  0  0  0
+3 | 7  0  0  0  0  0  0  0  0  0
+4 | 0  3  0  0  0  4  0  2  0  0
+5 | 0  2  2  0  4  0  0  0  0  0
+6 | 0  3  0  0  1  0  0  0  0  4
+7 | 0  0  0  0  6  0  3  0  4  0
+8 | 0  0  0  7  0  4  0  0  0  1
+t | 0  0  0  0  0  0  4  6  7  0
+
+🌀 Itération 7 :
+✔️ Chaîne améliorante trouvée : 0 → 2 → 5 → 4 → 7 → 6 → 9
+🔁 Valeur de flot pour cette chaîne : 1
+📊 Graphe résiduel mis à jour :
+La matrice de capacité
+    s  1  2  3  4  5  6  7  8  t
+   ------------------------------
+s | 0  8  0  1  0  0  0  0  0  0
+1 | 8  0  0  0  0  0  0  0  0  0
+2 | 3  0  0  7  0  2  0  0  0  0
+3 | 7  0  0  0  0  0  0  0  0  0
+4 | 0  3  0  0  0  5  0  1  0  0
+5 | 0  2  3  0  3  0  0  0  0  0
+6 | 0  3  0  0  1  0  0  1  0  3
+7 | 0  0  0  0  7  0  2  0  4  0
+8 | 0  0  0  7  0  4  0  0  0  1
+t | 0  0  0  0  0  0  5  6  7  0
+
+🌀 Itération 8 :
+❌ Aucun chemin améliorant trouvé. L'algorithme s'arrête.
+
+🌊 Flot maximal trouvé : 18
+La matrice de capacité
+        s      1      2      3      4      5      6      7      8      t
+   ----------------------------------------------------------------------
+s |     0   8/16    3/3    7/8      0      0      0      0      0      0
+1 |     0      0      0      0    3/3    2/2    3/3      0      0      0
+2 |     0      0      0    0/7      0    3/5      0      0      0      0
+3 |     0      0      0      0      0      0      0      0    7/7      0
+4 |     0      0      0      0      0      0    1/1    7/8      0      0
+5 |     0      0      0      0    5/8      0      0      0      0      0
+6 |     0      0      0      0      0      0      0      0      0    5/8
+7 |     0      0      0      0      0      0    1/3      0    0/4    6/6
+8 |     0      0      0      0      0    0/4      0      0      0    7/8
+t |     0      0      0      0      0      0      0      0      0      0
