@@ -6,6 +6,7 @@ from functions import (
 )
 from complexity import measure_algorithm_time
 import matplotlib.pyplot as plt
+from functions_max_flow import *
 import time
 
 def plot_all_algorithms(results, n, k):
@@ -76,27 +77,25 @@ if __name__ == "__main__":
             print_max_per_algorithm(results)
             plot_all_algorithms(results, n, k)
 
-    elif mode == "test":
-        n = 6
-        cap, cost = generate_random_flow_problem(n)
-        print("Capacité :")
-        for row in cap:
-            print(row)
-        print("\nCoût :")
-        for row in cost:
-            print(row)
+    elif mode == "graphe":
+        imported_data = graph_import("graphs/graph1.txt")
+        graph = imported_data[0]
+        flow_type = imported_data[1]
+        if flow_type == 1:
+            print("problème de flot à cout minimal")
+        else:
+            print("problème de flot maximal") #méthode F-F ou pousser-réétiqueter
 
-        print("\nFord-Fulkerson:")
-        flow, _ = ford_fulkerson([row[:] for row in cap], 0, n-1)
-        print("Max flow:", flow)
+        print_graph_to_matrix_of_values(graph)
 
-        print("\nPush-Relabel:")
-        flow = push_relabel([row[:] for row in cap], 0, n-1)
-        print("Max flow:", flow)
-
-        print("\nMin-Cost Max-Flow:")
-        flow, cost = min_cost_max_flow([row[:] for row in cap], [row[:] for row in cost], 0, n-1, flow // 2)
-        print("Flow:", flow, "Cost:", cost)
+        if flow_type == 2:  # flot max
+            print_graph_to_matrix_of_values(graph)
+            print("\n =========== ford fulkerson ===========\n")
+            ff_mat = ford_fulkerson(graph)[1]
+            compute_flow_matrix(graph, ff_mat)
+            print("\n =========== push-label ===========\n")
+            pl = push_relabel(graph,0,len(graph)-1)
+            print('\n valeurs du poussé réétiqueté : ' + str(pl))
 
     else:
         print("❌ Mode inconnu. Tapez 'test' ou 'complexité'.")
